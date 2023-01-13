@@ -5,6 +5,7 @@ namespace CuteCode;
 use CuteCode\Binlist\BinlistClientInterface;
 use CuteCode\Binlist\Exception\BinlistException;
 use CuteCode\CommissionCalculator\CommissionCalculatorInterface;
+use CuteCode\DTO\TransactionDTO;
 use CuteCode\Exception\ProcessorException;
 use CuteCode\Exchanger\Exception\ExchangerException;
 use CuteCode\Exchanger\ExchangerInterface;
@@ -17,40 +18,49 @@ class Processor
         private readonly ExchangerInterface $exchanger,
         private readonly BinlistClientInterface $binlistClient,
         private readonly CommissionCalculatorInterface $commissionCalculator,
-    )
-    {
+    ) {
     }
 
     /**
+     * @return float[]
      * @throws ProcessorException
      */
-    public function process(string $filename): void
+    public function process(\SplFileObject $file): array
     {
-        foreach (explode("\n", file_get_contents($filename)) as $row) {
+        $file->openFile();
+        $result = [];
 
-            if (empty($row)) break;
-            $p = explode(",", $row);
-            $p2 = explode(':', $p[0]);
-            $value[0] = trim($p2[1], '"');
-            $p2 = explode(':', $p[1]);
-            $value[1] = trim($p2[1], '"');
-            $p2 = explode(':', $p[2]);
-            $value[2] = trim($p2[1], '"}');
+        while (!$file->eof()) {
+            $row = $file->fgets();
+
+            if (\trim($row) === '') {
+                continue;
+            }
 
             try {
-                $bin = $this->binlistClient->getBin((int)$value[0]);
+                $rowObject = \json_decode($row, false, 512, \JSON_THROW_ON_ERROR);
+            } catch (\JsonException $e) {
+                throw new ProcessorException('Cant\'t decode line ', 0, $e);
+            }
+
+            if (!isset($rowObject->bin, $rowObject->amount, $rowObject->currency)) {
+                throw new ProcessorException('Cant\'t find mandatory fields');
+            }
+
+            $transaction = new TransactionDTO((int) $rowObject->bin, \floatval($rowObject->amount), $rowObject->currency);
+
+            try {
+                $this->binlistClient->updateTransaction($transaction);
+                $amountFixed = $this->exchanger->exchange($transaction->amount, $transaction->currency, self::DEFAULT_CURRENCY);
             } catch (BinlistException $e) {
-                throw new ProcessorException(\sprintf('Wrong bin ID: %d', (int) $value[0]), 0, $e);
-            }
-
-            try {
-                $amountFixed = $this->exchanger->exchange(\floatval($value[1]), $value[2], self::DEFAULT_CURRENCY);
+                throw new ProcessorException(\sprintf('Wrong bin ID: %d', $transaction->binId), 0, $e);
             } catch (ExchangerException $e) {
-                throw new ProcessorException(\sprintf('Can\'t exchange from %s to %s', $value[2], self::DEFAULT_CURRENCY), 0, $e);
+                throw new ProcessorException(\sprintf('Can\'t exchange from %s to %s', $transaction->currency, self::DEFAULT_CURRENCY), 0, $e);
             }
 
-            echo $this->commissionCalculator->calculate($amountFixed, $bin->countryCode);
-            print "\n";
+            $result[] = $this->commissionCalculator->calculate($amountFixed, $transaction->countryCode);
         }
+
+        return $result;
     }
 }

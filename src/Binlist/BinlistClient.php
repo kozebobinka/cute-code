@@ -2,8 +2,8 @@
 
 namespace CuteCode\Binlist;
 
-use CuteCode\Binlist\DTO\BinDTO;
 use CuteCode\Binlist\Exception\BinlistException;
+use CuteCode\DTO\TransactionDTO;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -14,10 +14,10 @@ class BinlistClient extends Client implements BinlistClientInterface
     /**
      * @throws BinlistException
      */
-    public function getBin(int $binId): BinDTO
+    public function updateTransaction(TransactionDTO $transactionDTO): void
     {
         try {
-            $response = $this->request('GET', \sprintf(self::GET_BIN_URL, $binId));
+            $response = $this->request('GET', \sprintf(self::GET_BIN_URL, $transactionDTO->binId));
             $content = \json_decode($response->getBody()->getContents(), false, 512, \JSON_THROW_ON_ERROR);
         } catch (GuzzleException $e) {
             throw new BinlistException('Error connecting to binlist', 0, $e);
@@ -31,6 +31,6 @@ class BinlistClient extends Client implements BinlistClientInterface
             throw new BinlistException('Can\'t find country code');
         }
 
-        return new BinDTO($binId, $content->country->alpha2);
+        $transactionDTO->countryCode = $content->country->alpha2;
     }
 }

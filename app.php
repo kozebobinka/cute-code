@@ -1,9 +1,9 @@
 <?php declare(strict_types = 1);
 
 use CuteCode\Binlist\BinlistClient;
+use CuteCode\Command;
 use CuteCode\CommissionCalculator\CommissionCalculator;
 use CuteCode\Processor;
-use CuteCode\Exception\ProcessorException;
 use CuteCode\Exchanger\ApilayerExchanger;
 use CuteCode\Exchanger\Client\ApiLayerClient;
 use Dotenv\Dotenv;
@@ -18,9 +18,6 @@ $exchanger = new ApilayerExchanger($client);
 $binlistClient = new BinlistClient();
 $commissionCalculator = new CommissionCalculator();
 $processor = new Processor($exchanger, $binlistClient, $commissionCalculator);
+$command = new Command($processor, $argv);
 
-try {
-    $processor->process($argv[1]);
-} catch (ProcessorException $e) {
-    echo $e->getMessage() . "\n";
-}
+$command->execute();

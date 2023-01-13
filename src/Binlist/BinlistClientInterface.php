@@ -2,9 +2,13 @@
 
 namespace CuteCode\Binlist;
 
-use CuteCode\Binlist\DTO\BinDTO;
+use CuteCode\Binlist\Exception\BinlistException;
+use CuteCode\DTO\TransactionDTO;
 
 interface BinlistClientInterface
 {
-    public function getBin(int $binId): BinDTO;
+    /**
+     * @throws BinlistException
+     */
+    public function updateTransaction(TransactionDTO $transactionDTO): void;
 }
