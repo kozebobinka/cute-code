@@ -4,17 +4,19 @@ namespace CuteCode;
 
 use CuteCode\Binlist\BinlistClient;
 use CuteCode\Binlist\Exception\BinlistException;
+use CuteCode\CommissionCalculator\CommissionCalculatorInterface;
 use CuteCode\Exception\CalculatorException;
 use CuteCode\Exchanger\Exception\ExchangerException;
 use CuteCode\Exchanger\ExchangerInterface;
 
-class Calculator
+class Processor
 {
     private const DEFAULT_CURRENCY = 'EUR';
 
     public function __construct(
         private readonly ExchangerInterface $exchanger,
         private readonly BinlistClient $binlistClient,
+        private readonly CommissionCalculatorInterface $commissionCalculator,
     )
     {
     }
@@ -47,49 +49,8 @@ class Calculator
                 throw new CalculatorException(\sprintf('Can\'t exchange from %s to %s', $value[2], self::DEFAULT_CURRENCY), 0, $e);
             }
 
-            $isEu = self::isEu($bin->countryCode);
-
-            echo $amountFixed * ($isEu === 'yes' ? 0.01 : 0.02);
+            echo $this->commissionCalculator->calculate($amountFixed, $bin->countryCode);
             print "\n";
         }
-    }
-
-    private static function isEu($c)
-    {
-        $result = false;
-        switch ($c) {
-            case 'AT':
-            case 'BE':
-            case 'BG':
-            case 'CY':
-            case 'CZ':
-            case 'DE':
-            case 'DK':
-            case 'EE':
-            case 'ES':
-            case 'FI':
-            case 'FR':
-            case 'GR':
-            case 'HR':
-            case 'HU':
-            case 'IE':
-            case 'IT':
-            case 'LT':
-            case 'LU':
-            case 'LV':
-            case 'MT':
-            case 'NL':
-            case 'PO':
-            case 'PT':
-            case 'RO':
-            case 'SE':
-            case 'SI':
-            case 'SK':
-                $result = 'yes';
-                return $result;
-            default:
-                $result = 'no';
-        }
-        return $result;
     }
 }

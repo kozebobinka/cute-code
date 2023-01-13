@@ -1,7 +1,8 @@
 <?php declare(strict_types = 1);
 
 use CuteCode\Binlist\BinlistClient;
-use CuteCode\Calculator;
+use CuteCode\CommissionCalculator\CommissionCalculator;
+use CuteCode\Processor;
 use CuteCode\Exception\CalculatorException;
 use CuteCode\Exchanger\ApilayerExchanger;
 use CuteCode\Exchanger\Client\ApiLayerClient;
@@ -15,7 +16,8 @@ $dotenv->load();
 $client = new ApiLayerClient($_ENV['APILAYER_APIKEY']);
 $exchanger = new ApilayerExchanger($client);
 $binlistClient = new BinlistClient();
-$calculator = new Calculator($exchanger, $binlistClient);
+$commissionCalculator = new CommissionCalculator();
+$calculator = new Processor($exchanger, $binlistClient, $commissionCalculator);
 
 try {
     $calculator->calculate($argv[1]);
