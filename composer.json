@@ -7,7 +7,8 @@
         "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
-        "roave/security-advisories": "dev-latest"
+        "roave/security-advisories": "dev-latest",
+        "friendsofphp/php-cs-fixer": "^3.13"
     },
     "autoload": {
         "psr-4": {
