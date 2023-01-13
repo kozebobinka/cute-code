@@ -14,11 +14,8 @@ class ApiLayerClient implements ExchangerClientInterface
     private const LATEST_URL = 'https://api.apilayer.com/exchangerates_data/latest';
     private const APIKEY_KEY = 'apikey';
 
-    private ?Client $client = null;
-
-    public function __construct(public string $apikey)
+    public function __construct(private readonly Client $client, private readonly string $apikey)
     {
-        $this->initClient();
     }
 
     /**
@@ -46,12 +43,5 @@ class ApiLayerClient implements ExchangerClientInterface
         }
 
         return new RatesDTO($content['rates'], $content['base']);
-    }
-
-    private function initClient(): void
-    {
-        if ($this->client === null) {
-            $this->client = new Client();
-        }
     }
 }

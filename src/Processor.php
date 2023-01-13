@@ -42,11 +42,11 @@ class Processor
             try {
                 $rowObject = \json_decode($row, false, 512, \JSON_THROW_ON_ERROR);
             } catch (\JsonException $e) {
-                throw new ProcessorException('Cant\'t decode line ', 0, $e);
+                throw new ProcessorException('Can\'t decode line', 0, $e);
             }
 
             if (!isset($rowObject->bin, $rowObject->amount, $rowObject->currency)) {
-                throw new ProcessorException('Cant\'t find mandatory fields');
+                throw new ProcessorException('Can\'t find mandatory fields');
             }
 
             $transaction = new TransactionDTO((int) $rowObject->bin, \floatval($rowObject->amount), $rowObject->currency);
@@ -61,7 +61,7 @@ class Processor
             }
 
             if ($transaction->countryCode === null) {
-                throw new ProcessorException('Cant\'t find country code');
+                throw new ProcessorException('Can\'t find country code');
             }
 
             $result[] = $this->commissionCalculator->calculate($amountFixed, $transaction->countryCode);

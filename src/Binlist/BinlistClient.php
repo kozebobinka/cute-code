@@ -13,11 +13,8 @@ class BinlistClient implements BinlistClientInterface
 {
     public const GET_BIN_URL = 'https://lookup.binlist.net/%d';
 
-    private ?Client $client = null;
-
-    public function __construct()
+    public function __construct(private readonly Client $client)
     {
-        $this->initClient();
     }
 
     /**
@@ -41,12 +38,5 @@ class BinlistClient implements BinlistClientInterface
         }
 
         $transactionDTO->countryCode = $content->country->alpha2;
-    }
-
-    private function initClient(): void
-    {
-        if ($this->client === null) {
-            $this->client = new Client();
-        }
     }
 }
