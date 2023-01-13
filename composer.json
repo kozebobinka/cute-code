@@ -1,0 +1,22 @@
+{
+    "name": "kozebobinka/cute-code",
+    "description": "Calculating commissions for already made transactions",
+    "type": "project",
+    "require": {
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
+    },
+    "autoload": {
+        "psr-4": {
+            "CuteCode\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Olena Sinelnyk",
+            "email": "kozebobinka@gmail.com"
+        }
+    ]
+}
