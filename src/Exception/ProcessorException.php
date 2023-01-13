@@ -2,6 +2,6 @@
 
 namespace CuteCode\Exception;
 
-class CalculatorException extends \Exception
+class ProcessorException extends \Exception
 {
 }

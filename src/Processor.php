@@ -2,10 +2,10 @@
 
 namespace CuteCode;
 
-use CuteCode\Binlist\BinlistClient;
+use CuteCode\Binlist\BinlistClientInterface;
 use CuteCode\Binlist\Exception\BinlistException;
 use CuteCode\CommissionCalculator\CommissionCalculatorInterface;
-use CuteCode\Exception\CalculatorException;
+use CuteCode\Exception\ProcessorException;
 use CuteCode\Exchanger\Exception\ExchangerException;
 use CuteCode\Exchanger\ExchangerInterface;
 
@@ -15,16 +15,16 @@ class Processor
 
     public function __construct(
         private readonly ExchangerInterface $exchanger,
-        private readonly BinlistClient $binlistClient,
+        private readonly BinlistClientInterface $binlistClient,
         private readonly CommissionCalculatorInterface $commissionCalculator,
     )
     {
     }
 
     /**
-     * @throws CalculatorException
+     * @throws ProcessorException
      */
-    public function calculate(string $filename)
+    public function process(string $filename): void
     {
         foreach (explode("\n", file_get_contents($filename)) as $row) {
 
@@ -40,13 +40,13 @@ class Processor
             try {
                 $bin = $this->binlistClient->getBin((int)$value[0]);
             } catch (BinlistException $e) {
-                throw new CalculatorException(\sprintf('Wrong bin ID: %d', (int) $value[0]), 0, $e);
+                throw new ProcessorException(\sprintf('Wrong bin ID: %d', (int) $value[0]), 0, $e);
             }
 
             try {
                 $amountFixed = $this->exchanger->exchange(\floatval($value[1]), $value[2], self::DEFAULT_CURRENCY);
             } catch (ExchangerException $e) {
-                throw new CalculatorException(\sprintf('Can\'t exchange from %s to %s', $value[2], self::DEFAULT_CURRENCY), 0, $e);
+                throw new ProcessorException(\sprintf('Can\'t exchange from %s to %s', $value[2], self::DEFAULT_CURRENCY), 0, $e);
             }
 
             echo $this->commissionCalculator->calculate($amountFixed, $bin->countryCode);

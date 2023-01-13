@@ -7,7 +7,7 @@ use CuteCode\Binlist\Exception\BinlistException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-class BinlistClient extends Client
+class BinlistClient extends Client implements BinlistClientInterface
 {
     public const GET_BIN_URL = 'https://lookup.binlist.net/%d';
 
