@@ -1,10 +1,23 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace CuteCode;
 
+use CuteCode\Exception\CalculatorException;
+use CuteCode\Exchanger\Exception\ExchangerException;
+use CuteCode\Exchanger\ExchangerInterface;
+
 class Calculator
 {
-    public static function calculate(string $filename)
+    private const DEFAULT_CURRENCY = 'EUR';
+
+    public function __construct(private ExchangerInterface $exchanger)
+    {
+    }
+
+    /**
+     * @throws CalculatorException
+     */
+    public function calculate(string $filename)
     {
         foreach (explode("\n", file_get_contents($filename)) as $row) {
 
@@ -23,15 +36,13 @@ class Calculator
             $r = json_decode($binResults);
             $isEu = self::isEu($r->country->alpha2);
 
-            $rate = @json_decode(file_get_contents('https://api.apilayer.com/exchangerates_data/latest?apikey=' . $_ENV['APILAYER_APIKEY']), true)['rates'][$value[2]];
-            if ($value[2] == 'EUR' or $rate == 0) {
-                $amntFixed = $value[1];
-            }
-            if ($value[2] != 'EUR' or $rate > 0) {
-                $amntFixed = $value[1] / $rate;
+            try {
+                $amntFixed = $this->exchanger->exchange(\floatval($value[1]), $value[2], self::DEFAULT_CURRENCY);
+            } catch (ExchangerException $e) {
+                throw new CalculatorException(\sprintf('Can\'t exchange from %s to %s', $value[2], self::DEFAULT_CURRENCY), 0, $e);
             }
 
-            echo $amntFixed * ($isEu == 'yes' ? 0.01 : 0.02);
+            echo $amntFixed * ($isEu === 'yes' ? 0.01 : 0.02);
             print "\n";
         }
     }
