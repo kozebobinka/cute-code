@@ -11,6 +11,9 @@ class SimpleOutput implements OutputInterface
         echo $line . "\n";
     }
 
+    /**
+     * @param mixed[] $array
+     */
     public static function writeArray(array $array): void
     {
         foreach ($array as $line) {

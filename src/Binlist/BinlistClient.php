@@ -9,9 +9,16 @@ use CuteCode\DTO\TransactionDTO;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-class BinlistClient extends Client implements BinlistClientInterface
+class BinlistClient implements BinlistClientInterface
 {
     public const GET_BIN_URL = 'https://lookup.binlist.net/%d';
+
+    private ?Client $client = null;
+
+    public function __construct()
+    {
+        $this->initClient();
+    }
 
     /**
      * @throws BinlistException
@@ -19,7 +26,7 @@ class BinlistClient extends Client implements BinlistClientInterface
     public function updateTransaction(TransactionDTO $transactionDTO): void
     {
         try {
-            $response = $this->request('GET', \sprintf(self::GET_BIN_URL, $transactionDTO->binId));
+            $response = $this->client->request('GET', \sprintf(self::GET_BIN_URL, $transactionDTO->binId));
             $content = \json_decode($response->getBody()->getContents(), false, 512, \JSON_THROW_ON_ERROR);
         } catch (GuzzleException $e) {
             throw new BinlistException('Error connecting to binlist', 0, $e);
@@ -34,5 +41,12 @@ class BinlistClient extends Client implements BinlistClientInterface
         }
 
         $transactionDTO->countryCode = $content->country->alpha2;
+    }
+
+    private function initClient(): void
+    {
+        if ($this->client === null) {
+            $this->client = new Client();
+        }
     }
 }

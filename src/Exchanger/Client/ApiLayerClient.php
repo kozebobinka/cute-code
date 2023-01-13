@@ -9,14 +9,16 @@ use CuteCode\Exchanger\Exception\ExchangerException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-class ApiLayerClient extends Client implements ExchangerClientInterface
+class ApiLayerClient implements ExchangerClientInterface
 {
     private const LATEST_URL = 'https://api.apilayer.com/exchangerates_data/latest';
     private const APIKEY_KEY = 'apikey';
 
+    private ?Client $client = null;
+
     public function __construct(public string $apikey)
     {
-        parent::__construct();
+        $this->initClient();
     }
 
     /**
@@ -25,7 +27,7 @@ class ApiLayerClient extends Client implements ExchangerClientInterface
     public function getRates(): RatesDTO
     {
         try {
-            $response = $this->request('GET', self::LATEST_URL, ['headers' => [self::APIKEY_KEY => $this->apikey]]);
+            $response = $this->client->request('GET', self::LATEST_URL, ['headers' => [self::APIKEY_KEY => $this->apikey]]);
             $content = \json_decode($response->getBody()->getContents(), true, 512, \JSON_THROW_ON_ERROR);
         } catch (GuzzleException $e) {
             throw new ExchangerException('Error connecting to apilayer', ExchangerException::CODE_CLIENT_ERROR, $e);
@@ -44,5 +46,12 @@ class ApiLayerClient extends Client implements ExchangerClientInterface
         }
 
         return new RatesDTO($content['rates'], $content['base']);
+    }
+
+    private function initClient(): void
+    {
+        if ($this->client === null) {
+            $this->client = new Client();
+        }
     }
 }

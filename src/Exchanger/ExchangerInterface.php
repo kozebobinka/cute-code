@@ -11,5 +11,5 @@ interface ExchangerInterface
     /**
      * @throws ExchangerException
      */
-    public function exchange(float $amount, string $from, string $to);
+    public function exchange(float $amount, string $from, string $to): float;
 }

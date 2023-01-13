@@ -60,6 +60,10 @@ class Processor
                 throw new ProcessorException(\sprintf('Can\'t exchange from %s to %s', $transaction->currency, self::DEFAULT_CURRENCY), 0, $e);
             }
 
+            if ($transaction->countryCode === null) {
+                throw new ProcessorException('Cant\'t find country code');
+            }
+
             $result[] = $this->commissionCalculator->calculate($amountFixed, $transaction->countryCode);
         }
 

@@ -9,6 +9,9 @@ use CuteCode\Output\SimpleOutput;
 
 class Command
 {
+    /**
+     * @param array<int, string> $argv
+     */
     public function __construct(private readonly Processor $processor, public array $argv)
     {
     }
