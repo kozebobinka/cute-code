@@ -1,5 +1,6 @@
 <?php declare(strict_types = 1);
 
+use CuteCode\Binlist\BinlistClient;
 use CuteCode\Calculator;
 use CuteCode\Exception\CalculatorException;
 use CuteCode\Exchanger\ApilayerExchanger;
@@ -13,7 +14,8 @@ $dotenv->load();
 
 $client = new ApiLayerClient($_ENV['APILAYER_APIKEY']);
 $exchanger = new ApilayerExchanger($client);
-$calculator = new Calculator($exchanger);
+$binlistClient = new BinlistClient();
+$calculator = new Calculator($exchanger, $binlistClient);
 
 try {
     $calculator->calculate($argv[1]);

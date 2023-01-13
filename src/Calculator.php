@@ -2,6 +2,8 @@
 
 namespace CuteCode;
 
+use CuteCode\Binlist\BinlistClient;
+use CuteCode\Binlist\Exception\BinlistException;
 use CuteCode\Exception\CalculatorException;
 use CuteCode\Exchanger\Exception\ExchangerException;
 use CuteCode\Exchanger\ExchangerInterface;
@@ -10,7 +12,10 @@ class Calculator
 {
     private const DEFAULT_CURRENCY = 'EUR';
 
-    public function __construct(private ExchangerInterface $exchanger)
+    public function __construct(
+        private readonly ExchangerInterface $exchanger,
+        private readonly BinlistClient $binlistClient,
+    )
     {
     }
 
@@ -30,19 +35,21 @@ class Calculator
             $p2 = explode(':', $p[2]);
             $value[2] = trim($p2[1], '"}');
 
-            $binResults = file_get_contents('https://lookup.binlist.net/' . $value[0]);
-            if (!$binResults)
-                die('error!');
-            $r = json_decode($binResults);
-            $isEu = self::isEu($r->country->alpha2);
+            try {
+                $bin = $this->binlistClient->getBin((int)$value[0]);
+            } catch (BinlistException $e) {
+                throw new CalculatorException(\sprintf('Wrong bin ID: %d', (int) $value[0]), 0, $e);
+            }
 
             try {
-                $amntFixed = $this->exchanger->exchange(\floatval($value[1]), $value[2], self::DEFAULT_CURRENCY);
+                $amountFixed = $this->exchanger->exchange(\floatval($value[1]), $value[2], self::DEFAULT_CURRENCY);
             } catch (ExchangerException $e) {
                 throw new CalculatorException(\sprintf('Can\'t exchange from %s to %s', $value[2], self::DEFAULT_CURRENCY), 0, $e);
             }
 
-            echo $amntFixed * ($isEu === 'yes' ? 0.01 : 0.02);
+            $isEu = self::isEu($bin->countryCode);
+
+            echo $amountFixed * ($isEu === 'yes' ? 0.01 : 0.02);
             print "\n";
         }
     }
